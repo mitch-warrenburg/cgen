@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+coverage/
+.cache/
+dist/
+public/
+
+
+# webstorm
+**/.idea/*
+!**/.idea/scopes
+!**/.idea/scopes/*
+!**/.idea/watcherTasks.xml
