@@ -1,0 +1,11 @@
+node_modules/
+coverage/
+.DS_Store
+.firebase
+dist/
+
+# webstorm
+**/.idea/*
+!**/.idea/scopes
+!**/.idea/scopes/*
+!**/.idea/watcherTasks.xml

@@ -1,0 +1,40 @@
+|import #{componentName} from './#{componentName}';
+|import * as stories from './#{componentName}.stories.tsx';
+|import Code from '../../../.storybook/assets/codeBrackets.svg';
+|import { Meta, Story, Props, Preview } from '@storybook/addon-docs/blocks';
+|
+|<Meta title="Components/#{componentName}" component={#{componentName}}/>
+|
+|<div class="overview-header">
+|   <h1 class="sbdocs-title header">#{componentName}</h1>
+|   <a class="link" href="#{gitRepoPath}/#{componentName}/#{componentName}.tsx" >
+|     <img src={Code} alt="code-link-icon" />
+|     <span>
+|       <strong>Source code</strong>
+|       View the source for #{componentName} on BitBucket.
+|     </span>
+|   </a>
+|</div>
+|
+|## Overview
+|
+|`#{componentName}` react component.
+|
+|<br/>
+|
+|#### Example
+|
+|<Preview withToolbar>
+|   <Story name="#{componentName} Demo">{(props) => stories.#{componentName}Demo(props)}</Story>
+|</Preview>
+|
+|### Props
+|
+|<Props story="#{componentName} Demo" />
+|
+|### Types
+|
+|```ts
+|   /* TS types */
+| ```
+|

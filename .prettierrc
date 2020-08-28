@@ -1,0 +1,14 @@
+{
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": true,
+  "bracketSpacing": true,
+  "jsxSingleQuote": false,
+  "jsxBracketSameLine": true,
+  "proseWrap": "preserve",
+  "arrowParens": "avoid",
+  "parser": "typescript",
+  "quoteProps": "as-needed",
+  "printWidth": 90
+}
