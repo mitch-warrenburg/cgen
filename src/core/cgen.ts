@@ -1,82 +1,115 @@
-import { JobConfig } from '../types';
-import { basename, join } from 'path';
-import { mkdir, test } from 'shelljs';
-import pug, { LocalsObject } from 'pug';
+import { test } from 'shelljs';
+import { LocalsObject } from 'pug';
+import { basename, extname } from 'path';
+import { CgenConfig, JobConfig, ProjectArchetypeName, TemplatesConfig } from '../types';
 import {
   logger,
   mergeDeep,
-  compilePath,
-  compileTemplateString,
-  logAndExitStatusOne,
+  resolvePaths,
+  resolveFilePath,
+  compileTemplateFile,
+  logFatalAndTerminate,
 } from '../utils';
+import {
+  EMPTY_JOB_CONFIG,
+  PREDEFINED_ARCHETYPES,
+  TEMPLATE_FILE_EXTENSION,
+  DEFAULT_TEMPLATE_INCLUDE_PATHS,
+} from '../constants';
 
-// const emptyConig: Readonly<JobConfig> = { fileNames: {} };
+export const cgen = (
+  jobName = '',
+  config: CgenConfig = {},
+  properties: LocalsObject = {}
+) => {
+  const { base: baseJobConfig, ...jobs } = config;
 
-// const getJobConfig = (
-//   job: JobConfig | ProjectArchetypeName = 'react-ts',
-//   baseJob: JobConfig = emptyConig
-// ): JobConfig => {
-//   const archetype = jobArchetypes[job as string];
-//   return archetype ? mergeDeep(baseJob, archetype) : mergeDeep(baseJob, job);
-// };
+  if (!jobs[jobName]) {
+    logFatalAndTerminate(
+      new Error('No jobs were provided.  Please provide a valid cgen job.')
+    );
+  }
+  const resolvedJobConfig = mergeDefaultAndSpecifiedJobs(jobs[jobName], baseJobConfig);
 
-// export const entry = (jobName = '', config: CgenConfig = {}) => {
-//   const { base, ...jobs } = config;
-//
-//   if (!jobs[jobName]) {
-//     logger.fatal(new Error(NO_JOBS_MSG));
-//     exit(1);
-//   }
-//   const jobConfig = getJobConfig(jobs[jobName], base);
-//   generateContent('fc', properties, jobConfig);
-// };
+  logger.info('Resolved job configuration: ');
+  logger.info(`
+    
+    ---------------------------------
+      ${JSON.stringify(resolvedJobConfig)}
+    ---------------------------------
+    
+  `);
 
-export const generateContent = (
-  // logOutput = false,
-  template: string,
+  generateFiles(resolvedJobConfig, properties);
+};
+
+const resolveTemplateLocations = ({
+  include = [],
+  exclude = [],
+  excludePaths = [],
+  includePaths = DEFAULT_TEMPLATE_INCLUDE_PATHS as Array<string>,
+}: TemplatesConfig) => {
+  const included = resolvePaths(includePaths, exclude);
+  const excluded = resolvePaths(excludePaths, include);
+
+  return included
+    .subtract(excluded)
+    .toArray()
+    .filter(path => TEMPLATE_FILE_EXTENSION === extname(path));
+};
+
+const mergeDefaultAndSpecifiedJobs = (
+  jobConfig: JobConfig | ProjectArchetypeName = 'react-ts',
+  baseJob: JobConfig = EMPTY_JOB_CONFIG
+): JobConfig => {
+  const archetype = PREDEFINED_ARCHETYPES[jobConfig as string];
+  return archetype ? mergeDeep(baseJob, archetype) : mergeDeep(baseJob, jobConfig);
+};
+
+export const generateFiles = (jobConfig: JobConfig, properties?: LocalsObject) => {
+  const { templates } = jobConfig;
+  resolveTemplateLocations(templates).map(templatePath =>
+    generateFileFromTemplate(templatePath, jobConfig, properties)
+  );
+};
+
+const generateFileFromTemplate = (
+  templatePath: string,
   jobConfig: JobConfig,
   properties: LocalsObject
-) => {
-  const {
-    fileNames,
-    pugOptions,
-    outPath = './src',
-    defaultProperties = {},
-    templatesDir = './templates',
-  } = jobConfig;
-
+): void => {
+  const { fileNames, pugOptions, outPath = './src', defaultProperties = {} } = jobConfig;
   const mergedProperties = mergeDeep(defaultProperties, properties);
-  const fileName = fileNames[template];
-  const outoutFilePath = getPath(outPath, fileName, mergedProperties);
-  const templatesDirPath = getPath(templatesDir, `${template.replace('.pug', '')}.pug`);
+  const templateName = basename(templatePath, TEMPLATE_FILE_EXTENSION);
 
-  if (!test('-d', outoutFilePath)) {
-    const content = pug.compileFile(templatesDirPath, pugOptions)(properties);
-    const contentStdr = `
-      ${content}
-    `;
-    logger.info(`Generated content for %s. ${contentStdr}`, basename(templatesDirPath));
-  }
-};
-
-const getPath = (path: string, fileName: string, properties?: LocalsObject) => {
-  const absoluteOutputPath = compilePath(path, properties);
-
-  if (!test('-d', absoluteOutputPath)) {
-    logger.info(
-      'Output path does not exist. Creating directory at: %s',
-      absoluteOutputPath
+  if (!fileNames[templateName]) {
+    logger.warn(
+      `
+      The fileNames configuration object does not define a fileName for template: %s.
+      The template name will be used as a fallback.
+    `,
+      templateName
     );
-    try {
-      mkdir('-p', absoluteOutputPath);
-    } catch (e) {
-      logger.error(
-        'Error: Unable to create directory from resolved path: %s',
-        absoluteOutputPath
-      );
-      logAndExitStatusOne(e);
-    }
   }
 
-  return join(absoluteOutputPath, compileTemplateString(fileName, properties));
+  const fileName = fileNames[templateName] || templateName;
+  const fileOutputPath = resolveFilePath(outPath, fileName, mergedProperties);
+
+  if (!test('-d', fileOutputPath)) {
+    const content = compileTemplateFile(templatePath, properties, pugOptions);
+    logger.info(
+      `Generated the following content from template: ${basename(templatePath)}.
+      
+      ---------------------------------
+        
+        ${content}
+      ---------------------------------  
+        
+      `
+    );
+  }
+
+  /* now write the file and move on... */
 };
+
+export default cgen;

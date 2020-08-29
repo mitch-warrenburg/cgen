@@ -1,6 +1,6 @@
+import { exit } from 'shelljs';
 import { Signale } from 'signale';
 import { blue, colors, green, orange, red, yellow } from '../constants';
-import { exit } from 'shelljs';
 
 const _logger: Readonly<Signale> = new Signale();
 
@@ -42,7 +42,7 @@ export const printTerminalColors = () => {
   );
 };
 
-export const logAndExitStatusOne = (error: Error) => {
+export const logFatalAndTerminate = (error: Error) => {
   logger.fatal(error);
   exit(1);
 };

@@ -1,3 +1,4 @@
+export * from './paths';
 export * from './logger';
 export * from './template';
 export { default as logger } from './logger';

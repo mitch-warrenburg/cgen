@@ -7,12 +7,18 @@ export interface TemplateNameMapping {
   [templateName: string]: string;
 }
 
+export interface TemplatesConfig {
+  include?: Array<RegExp>;
+  exclude?: Array<RegExp>;
+  includePaths?: Array<string>;
+  excludePaths?: Array<string>;
+}
+
 export interface JobConfig {
-  templatesDir?: string;
-  excludeTemplates?: Array<string>;
-  pugOptions?: Options;
-  defaultProperties?: LocalsObject;
   outPath?: string;
+  pugOptions?: Options;
+  templates?: TemplatesConfig;
+  defaultProperties?: LocalsObject;
   fileNames: TemplateNameMapping;
 }
 
