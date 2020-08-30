@@ -14,7 +14,7 @@ const DEFAULT_REACT_TEMPLATE_OUT_PATH: Readonly<string> =
 export const REACT_TS_CONFIG: JobConfig = {
   fileNames: {
     test: 'test.tsx',
-    index: 'index.ts',
+    index: 'cli.ts',
     types: 'types.ts',
     component: '#{componentName}.tsx',
   },
@@ -26,7 +26,7 @@ export const REACT_TS_STORYBOOK_CONFIG: JobConfig = {
   fileNames: {
     mdx: 'mdx.ts',
     test: 'test.tsx',
-    index: 'index.ts',
+    index: 'cli.ts',
     types: 'types.ts',
     dirName: '#{componentName}',
     component: '#{componentName}.tsx',

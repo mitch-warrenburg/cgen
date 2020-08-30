@@ -1,38 +1,32 @@
 import { exit } from 'shelljs';
+import { basename } from 'path';
 import { Signale } from 'signale';
-import { blue, colors, green, orange, red, yellow } from '../constants';
+import { JobConfig } from '../types';
+import { colors } from '../constants';
 
 const _logger: Readonly<Signale> = new Signale();
 
-const resolveVarArgs = (...args: unknown[]): unknown[] | undefined => {
-  return args.length ? args : undefined;
-};
-
 export const logger = {
   error: (message: unknown, ...args: unknown[]) => {
-    _logger.error(red(message), resolveVarArgs(args));
+    _logger.error(message, ...args);
   },
   fatal: (message: unknown, ...args: unknown[]) => {
-    if (message instanceof Error) {
-      _logger.fatal(message);
-    } else {
-      _logger.fatal(red.bold(message), resolveVarArgs(args));
-    }
+    _logger.fatal(message, ...args);
   },
   warn: (message: unknown, ...args: unknown[]) => {
-    _logger.warn(yellow(message), resolveVarArgs(args));
+    _logger.warn(message, ...args);
   },
   info: (message: unknown, ...args: unknown[]) => {
-    _logger.info(blue(message), resolveVarArgs(args));
+    _logger.info(message, ...args);
   },
   success: (message: unknown, ...args: unknown[]) => {
-    _logger.success(green.bold(message), resolveVarArgs(args));
+    _logger.success(message, ...args);
   },
   complete: (message: unknown, ...args: unknown[]) => {
-    _logger.complete(green(message), resolveVarArgs(args));
+    _logger.complete(message, ...args);
   },
   pending: (message: unknown, ...args: unknown[]) => {
-    _logger.pending(orange(message), resolveVarArgs(args));
+    _logger.pending(message, ...args);
   },
 };
 
@@ -45,6 +39,24 @@ export const printTerminalColors = () => {
 export const logFatalAndTerminate = (error: Error) => {
   logger.fatal(error);
   exit(1);
+};
+
+export const logGeneratedContent = (templatePath: string, content: string) => {
+  logger.success(`Generated the following content from template: ${basename(
+    templatePath
+  )}.
+      
+---------------------------------
+  
+${content}
+---------------------------------  
+`);
+};
+
+export const logCgenConfig = (resolvedJobConfig: JobConfig) => {
+  logger.info(`Resolved job configuration: 
+
+${JSON.stringify(resolvedJobConfig, null, 4)}`);
 };
 
 export default logger;

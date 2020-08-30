@@ -1,7 +1,8 @@
 import { join } from 'path';
 import { Set } from 'immutable';
+import { basename } from 'path';
 import { LocalsObject } from 'pug';
-import { find, mkdir, test } from 'shelljs';
+import { cat, find, mkdir, test } from 'shelljs';
 import { logFatalAndTerminate, logger } from './index';
 import { compilePath, compileTemplateString } from './template';
 
@@ -45,4 +46,14 @@ export const resolveFilePath = (
   }
 
   return join(absoluteOutputPath, compileTemplateString(fileName, properties));
+};
+
+export const writeFile = (filePath: string, content: string) => {
+  try {
+    logger.info('Writing file to path %s...', filePath);
+    cat(filePath).to(content);
+    logger.success('Successfully generated %s.', basename(filePath));
+  } catch (e) {
+    logFatalAndTerminate(e);
+  }
 };

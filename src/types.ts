@@ -46,3 +46,13 @@ export type TerminalColor =
 export type TerminalColorsDefinitions = {
   [color in TerminalColor]: Chalk;
 };
+
+export interface CgenCliOptions {
+  failFast: boolean;
+  overwrite: boolean;
+}
+
+export interface CgenCliInput {
+  options: CgenCliOptions;
+  parameters: Array<string>;
+}

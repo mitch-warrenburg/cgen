@@ -6,9 +6,12 @@ import {
   logger,
   mergeDeep,
   resolvePaths,
+  logCgenConfig,
   resolveFilePath,
   compileTemplateFile,
+  logGeneratedContent,
   logFatalAndTerminate,
+  writeFile,
 } from '../utils';
 import {
   EMPTY_JOB_CONFIG,
@@ -22,6 +25,8 @@ export const cgen = (
   config: CgenConfig = {},
   properties: LocalsObject = {}
 ) => {
+  console.log('\n');
+
   const { base: baseJobConfig, ...jobs } = config;
 
   if (!jobs[jobName]) {
@@ -31,14 +36,7 @@ export const cgen = (
   }
   const resolvedJobConfig = mergeDefaultAndSpecifiedJobs(jobs[jobName], baseJobConfig);
 
-  logger.info('Resolved job configuration: ');
-  logger.info(`
-    
-    ---------------------------------
-      ${JSON.stringify(resolvedJobConfig)}
-    ---------------------------------
-    
-  `);
+  logCgenConfig(resolvedJobConfig);
 
   generateFiles(resolvedJobConfig, properties);
 };
@@ -94,22 +92,19 @@ const generateFileFromTemplate = (
 
   const fileName = fileNames[templateName] || templateName;
   const fileOutputPath = resolveFilePath(outPath, fileName, mergedProperties);
+  const fileExists = test('-f', fileOutputPath);
 
-  if (!test('-d', fileOutputPath)) {
-    const content = compileTemplateFile(templatePath, properties, pugOptions);
+  if (fileExists) {
     logger.info(
-      `Generated the following content from template: ${basename(templatePath)}.
-      
-      ---------------------------------
-        
-        ${content}
-      ---------------------------------  
-        
-      `
+      'File %s already exists.  Skipping %s...',
+      basename(templatePath),
+      basename(templatePath)
     );
+  } else {
+    const content = compileTemplateFile(templatePath, properties, pugOptions);
+    logGeneratedContent(templatePath, content);
+    writeFile(fileOutputPath, content);
   }
-
-  /* now write the file and move on... */
 };
 
 export default cgen;
